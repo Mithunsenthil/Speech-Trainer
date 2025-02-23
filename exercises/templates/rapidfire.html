@@ -1,0 +1,78 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Rapid Fire</title>
+</head>
+<body>
+
+    <h2>Audio Recorder</h2>
+    <button id="start">Start Recording</button>
+    <button id="stop" disabled>Stop Recording</button>
+    <audio id="audio" controls></audio>
+
+    <script>
+        let mediaRecorder;
+        let audioChunks = [];
+
+        document.getElementById("start").addEventListener("click", async () => {
+            try {
+                const stream = await navigator.mediaDevices.getUserMedia({ audio: true });
+                mediaRecorder = new MediaRecorder(stream);
+
+                mediaRecorder.ondataavailable = event => {
+                    audioChunks.push(event.data);
+                };
+
+                mediaRecorder.onstop = async () => {
+                    const audioBlob = new Blob(audioChunks, { type: "audio/webm" });
+                    const audioUrl = URL.createObjectURL(audioBlob);
+                    
+                    // Play the recorded audio
+                    document.getElementById("audio").src = audioUrl;
+                    
+                    // Auto-download the file
+                    const downloadLink = document.createElement("a");
+                    downloadLink.href = audioUrl;
+                    downloadLink.download = "recorded_audio.webm";
+                    document.body.appendChild(downloadLink);
+                    downloadLink.click();
+                    document.body.removeChild(downloadLink);
+
+                    // Send file to Django backend
+                    const formData = new FormData();
+                    formData.append("audio", audioBlob, "recorded_audio.webm");
+
+                    try {
+                        const response = await fetch("http://127.0.0.1:8000/rapidfire/submit/", {
+                            method: "POST",
+                            body: formData
+                        });
+
+                        // If the backend redirects, follow it.
+                        if (response.redirected) {
+                            window.location.href = response.url;
+                        }
+                    } catch (error) {
+                        console.error("Error sending audio:", error);
+                    }
+                };
+
+                mediaRecorder.start();
+                document.getElementById("start").disabled = true;
+                document.getElementById("stop").disabled = false;
+            } catch (error) {
+                console.error("Error accessing microphone:", error);
+            }
+        });
+
+        document.getElementById("stop").addEventListener("click", () => {
+            mediaRecorder.stop();
+            document.getElementById("start").disabled = false;
+            document.getElementById("stop").disabled = true;
+        });
+    </script>
+
+</body>
+</html>

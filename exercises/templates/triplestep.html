@@ -1,0 +1,83 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <title>Triple Step Exercise</title>
+  <style>
+    body { font-family: Arial, sans-serif; margin: 20px; }
+    .topic { font-size: 1.2em; margin-bottom: 10px; padding: 10px; background-color: #f0f0f0; border-radius: 5px; }
+    .distractors { margin-bottom: 20px; }
+    .distractors ul { list-style-type: disc; margin-left: 20px; }
+  </style>
+</head>
+<body>
+  <h2>Triple Step Exercise</h2>
+  <div class="topic">
+    <strong>Main Topic:</strong> {{ main_topic }}
+  </div>
+  <div class="distractors">
+    <strong>Distractor Words:</strong>
+    <ul>
+      {% for word in distractor_words %}
+      <li>{{ word }}</li>
+      {% endfor %}
+    </ul>
+  </div>
+  <div>
+    <p>Record your response while handling the visual distractions.</p>
+    <button id="start">Start Recording</button>
+    <button id="stop" disabled>Stop Recording</button>
+    <audio id="audio" controls></audio>
+  </div>
+  
+  <script>
+    let mediaRecorder;
+    let audioChunks = [];
+    
+    document.getElementById("start").addEventListener("click", async () => {
+      try {
+        const stream = await navigator.mediaDevices.getUserMedia({ audio: true });
+        mediaRecorder = new MediaRecorder(stream);
+        
+        mediaRecorder.ondataavailable = event => {
+          audioChunks.push(event.data);
+        };
+        
+        mediaRecorder.onstop = async () => {
+          const audioBlob = new Blob(audioChunks, { type: "audio/webm" });
+          const audioUrl = URL.createObjectURL(audioBlob);
+          document.getElementById("audio").src = audioUrl;
+          
+          // Send the audio file to the backend for processing
+          const formData = new FormData();
+          formData.append("audio", audioBlob, "recorded_audio.webm");
+          
+          try {
+            const response = await fetch("/triple_step/submit/", {
+              method: "POST",
+              body: formData
+            });
+            if (response.redirected) {
+              window.location.href = response.url;
+            }
+          } catch (error) {
+            console.error("Error sending audio:", error);
+          }
+        };
+        
+        mediaRecorder.start();
+        document.getElementById("start").disabled = true;
+        document.getElementById("stop").disabled = false;
+      } catch (error) {
+        console.error("Error accessing microphone:", error);
+      }
+    });
+    
+    document.getElementById("stop").addEventListener("click", () => {
+      mediaRecorder.stop();
+      document.getElementById("start").disabled = false;
+      document.getElementById("stop").disabled = true;
+    });
+  </script>
+</body>
+</html>

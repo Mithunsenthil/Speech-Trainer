@@ -1,0 +1,61 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <title>Triple Step Results</title>
+  <style>
+    body { font-family: Arial, sans-serif; margin: 20px; }
+    .result-section { margin-bottom: 20px; }
+    .result-section h3 { margin-bottom: 10px; }
+    .score-table { border-collapse: collapse; width: 60%; }
+    .score-table th, .score-table td { border: 1px solid #ddd; padding: 8px; text-align: left; }
+    .score-table th { background-color: #f2f2f2; }
+  </style>
+</head>
+<body>
+  <h2>Triple Step Exercise Results</h2>
+  
+  <div class="result-section">
+    <h3>Main Topic</h3>
+    <p>{{ result.main_topic }}</p>
+  </div>
+  
+  <div class="result-section">
+    <h3>Transcript</h3>
+    <p>{{ result.transcript }}</p>
+  </div>
+  
+  <div class="result-section">
+    <h3>Evaluation Scores</h3>
+    <table class="score-table">
+      <tr>
+        <th>Metric</th>
+        <th>Score</th>
+      </tr>
+      <tr>
+        <td>Speech Coherence</td>
+        <td>{{ result.coherence_score }}</td>
+      </tr>
+      <tr>
+        <td>Topic Adherence</td>
+        <td>{{ result.topic_adherence_score }}</td>
+      </tr>
+      <tr>
+        <td>Distraction Handling</td>
+        <td>{{ result.distraction_handling_score }}</td>
+      </tr>
+    </table>
+  </div>
+  
+  <div class="result-section">
+    <h3>Generated Distractor Words</h3>
+    <ul>
+      {% for word in result.generated_distractors %}
+      <li>{{ word }}</li>
+      {% endfor %}
+    </ul>
+  </div>
+  
+  <a href="{% url 'dashboard' %}">Dashboard</a>
+</body>
+</html>

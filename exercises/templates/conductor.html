@@ -1,0 +1,90 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <title>Conductor Exercise</title>
+  <style>
+    body { font-family: Arial, sans-serif; margin: 20px; }
+    .instructions { background-color: #eef; padding: 15px; border-radius: 5px; margin-bottom: 20px; }
+    .guidance { margin-bottom: 20px; }
+    .guidance span { display: inline-block; margin-right: 15px; padding: 5px 10px; background: #f0f0f0; border-radius: 5px; }
+  </style>
+</head>
+<body>
+  <h2>Conductor Exercise</h2>
+  <div class="instructions">
+    <p>{{ instructions }}</p>
+  </div>
+  
+  <div class="guidance">
+    <strong>Energy Levels:</strong>
+    {% for level in energy_levels %}
+      <span>{{ level }}</span>
+    {% endfor %}
+  </div>
+  
+  <div class="guidance">
+    <strong>Moods:</strong>
+    {% for mood in moods %}
+      <span>{{ mood }}</span>
+    {% endfor %}
+  </div>
+  
+  <div>
+    <p>Record your voice while trying to match the displayed energy levels and moods.</p>
+    <button id="start">Start Recording</button>
+    <button id="stop" disabled>Stop Recording</button>
+    <audio id="audio" controls></audio>
+  </div>
+  
+  <script>
+    let mediaRecorder;
+    let audioChunks = [];
+    
+    document.getElementById("start").addEventListener("click", async () => {
+      try {
+        const stream = await navigator.mediaDevices.getUserMedia({ audio: true });
+        mediaRecorder = new MediaRecorder(stream);
+        
+        mediaRecorder.ondataavailable = event => {
+          audioChunks.push(event.data);
+        };
+        
+        mediaRecorder.onstop = async () => {
+          const audioBlob = new Blob(audioChunks, { type: "audio/webm" });
+          const audioUrl = URL.createObjectURL(audioBlob);
+          document.getElementById("audio").src = audioUrl;
+          
+          // Send the recorded audio to the backend for analysis
+          const formData = new FormData();
+          formData.append("audio", audioBlob, "recorded_audio.webm");
+          
+          try {
+            const response = await fetch("/conductor/submit/", {
+              method: "POST",
+              body: formData
+            });
+            if (response.redirected) {
+              window.location.href = response.url;
+            }
+          } catch (error) {
+            console.error("Error sending audio:", error);
+          }
+        };
+        
+        mediaRecorder.start();
+        document.getElementById("start").disabled = true;
+        document.getElementById("stop").disabled = false;
+      } catch (error) {
+        console.error("Error accessing microphone:", error);
+      }
+    });
+    
+    document.getElementById("stop").addEventListener("click", () => {
+      mediaRecorder.stop();
+      document.getElementById("start").disabled = false;
+      document.getElementById("stop").disabled = true;
+    });
+  </script>
+</body>
+</html>

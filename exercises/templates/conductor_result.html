@@ -1,0 +1,57 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <title>Conductor Exercise Results</title>
+  <style>
+    body { font-family: Arial, sans-serif; margin: 20px; }
+    .result-section { margin-bottom: 20px; }
+    .result-section h3 { margin-bottom: 10px; }
+    .score-table { border-collapse: collapse; width: 60%; }
+    .score-table th, .score-table td { border: 1px solid #ddd; padding: 8px; text-align: left; }
+    .score-table th { background-color: #f2f2f2; }
+    .suggestions ul { list-style-type: disc; margin-left: 20px; }
+  </style>
+</head>
+<body>
+  <h2>Conductor Exercise Results</h2>
+  
+  <div class="result-section">
+    <h3>Transcript</h3>
+    <p>{{ result.transcript }}</p>
+  </div>
+  
+  <div class="result-section">
+    <h3>Voice Analysis Scores</h3>
+    <table class="score-table">
+      <tr>
+        <th>Metric</th>
+        <th>Score</th>
+      </tr>
+      <tr>
+        <td>Energy Level</td>
+        <td>{{ result.energy_level }}</td>
+      </tr>
+      <tr>
+        <td>Vocal Variety</td>
+        <td>{{ result.vocal_variety }}</td>
+      </tr>
+      <tr>
+        <td>Mood Matching</td>
+        <td>{{ result.mood_match_score }}</td>
+      </tr>
+    </table>
+  </div>
+  
+  <div class="result-section suggestions">
+    <h3>Improvement Suggestions</h3>
+    <ul>
+      {% for suggestion in result.improvement_suggestions %}
+      <li>{{ suggestion }}</li>
+      {% endfor %}
+    </ul>
+  </div>
+  
+  <a href="{% url 'dashboard' %}">Dashboard</a>
+</body>
+</html>

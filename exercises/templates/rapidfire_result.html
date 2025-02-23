@@ -1,0 +1,76 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <title>Rapidfire Analysis</title>
+  <style>
+    body {
+      font-family: Arial, sans-serif;
+      margin: 20px;
+    }
+    .output-text {
+      font-size: 1.2em;
+      margin-bottom: 20px;
+      background: #f9f9f9;
+      padding: 15px;
+      border-radius: 5px;
+      box-shadow: 0 2px 5px rgba(0,0,0,0.1);
+    }
+    .score-table {
+      border-collapse: collapse;
+      width: 60%;
+    }
+    .score-table th, .score-table td {
+      border: 1px solid #ddd;
+      padding: 8px;
+      text-align: left;
+    }
+    .score-table th {
+      background-color: #f2f2f2;
+    }
+  </style>
+</head>
+<body>
+  <h2>Rapidfire Processing Output</h2>
+  
+  <!-- Display the text output (first element of the result list) -->
+  <div class="output-text">
+    <strong>Output Text:</strong>
+    <p>{{ result.0 }}</p>
+  </div>
+  
+  <!-- Display the score dictionary (second element of the result list) -->
+  <div class="scores">
+    <h3>Scores</h3>
+    <table class="score-table">
+      <tr>
+        <th>Score Type</th>
+        <th>Value</th>
+      </tr>
+      <tr>
+        <td>Response Timing Score</td>
+        <td>{{ result.1.response_timing_score }}</td>
+      </tr>
+      <tr>
+        <td>Speech Continuity Score</td>
+        <td>{{ result.1.speech_continuity_score }}</td>
+      </tr>
+      <tr>
+        <td>Analogy Relevance Score</td>
+        <td>{{ result.1.analogy_relevance_score }}</td>
+      </tr>
+      <tr>
+        <td>Creativity Score</td>
+        <td>{{ result.1.creativity_score }}</td>
+      </tr>
+      <tr>
+        <td>Overall Score</td>
+        <td>{{ result.1.overall_score }}</td>
+      </tr>
+    </table>
+  </div>
+  
+  <br>
+  <a href="{% url 'dashboard' %}">dashboard</a>
+</body>
+</html>

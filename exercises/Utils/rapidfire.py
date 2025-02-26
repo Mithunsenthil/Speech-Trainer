@@ -1,115 +1,200 @@
-import os
-from pydub import AudioSegment
-import whisper
+from collections import Counter
+from transformers import pipeline
+from groq import Groq
+from collections import Counter
+from nltk.tokenize import word_tokenize
+from nltk.corpus import stopwords
+import json
+import numpy as np
+from .audio_process import process_audio_upload, convert_wav_to_mp3, transcribe_audio, save_uploaded_file 
 
-def analyze_transcript(transcript: str, response_time: float = 1) -> dict:
-    # Response Timing Score: simple thresholds (example values)
-    if response_time <= 3:
-        response_timing_score = 10
-    elif response_time <= 5:
-        response_timing_score = 8
-    elif response_time <= 7:
-        response_timing_score = 6
-    else:
-        response_timing_score = 4
+def generate_incomplete_analogy():
+    client = Groq(api_key="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")
+    completion = client.chat.completions.create(
+        model="llama-3.3-70b-versatile",
+        messages=[
+            {
+                "role": "system",
+                "content": (
+                    "You are a helpful AI Assistant. "
+                    "Generate a single incomplete analogy prompt. "
+                    "For example: 'Learning is like', 'Love is like'. "
+                    "Output exactly one incomplete analogy without any additional words."
+                ) 
+            },
+            {
+            "role": "user",
+            "content": "give a random incomplete anology",
+            }
+        ],
+        temperature=2,
+        frequency_penalty=0.0,
+        max_completion_tokens=1024,
+        top_p=1,
+        stream=True,
+        stop=None,
+    )   
+    print(completion)
+    # Handling the streamed output
+    response_content = ""
+    for chunk in completion:
+        response_content = response_content+(chunk.choices[0].delta.content or "")
+        print(chunk.choices[0].delta.content or "", end="")
 
-    # Speech Continuity Score: count filler words
-    filler_words = ['um', 'uh', 'like', 'you know', 'er']
-    transcript_lower = transcript.lower()
-    filler_count = sum(transcript_lower.count(word) for word in filler_words)
-    speech_continuity_score = max(0, 10 - filler_count)
+    return response_content
 
-    # Analogy Relevance: non-empty transcript gets full score
-    relevance_score = 10 if transcript.strip() != "" else 0
+def extract_topic(transcript):
 
-    # Creativity Score: lexical diversity (unique words / total words)
-    words = transcript.split()
-    total_words = len(words)
-    unique_words = len(set(words))
-    lexical_diversity = (unique_words / total_words) if total_words > 0 else 0
-    creativity_score = lexical_diversity * 10
+    # Initialize english stopwords
+    english_stopwords = stopwords.words("english")
 
-    overall_score = (
-        response_timing_score +
-        speech_continuity_score +
-        relevance_score +
-        creativity_score
-    ) / 4
+    #convert article to tokens
+    tokens = word_tokenize(transcript)
+
+    #extract alpha words and convert to lowercase
+    alpha_lower_tokens = [word.lower() for word in tokens if word.isalpha()]
+
+    #remove stopwords
+    alpha_no_stopwords = [word for word in alpha_lower_tokens if word not in english_stopwords]
+
+    #Count word
+    BoW = Counter(alpha_no_stopwords)
+
+    #Most common words
+    return BoW.most_common(3) 
+
+def score_analogy_with_groq(transcript, incomplete_analogy):
+    """
+    Use Groq to evaluate analogy relevance and creativity based on the transcript
+    and the incomplete analogy prompt.
+    
+    Parameters:
+        transcript (str): The transcribed text from the user's response
+        incomplete_analogy (str): The incomplete analogy prompt (e.g., "Success is like")
+        
+    Returns:
+        dict: A dictionary with analogy_relevance and creativity scores
+    """
+    client = Groq(api_key="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")
+    
+    prompt = f"""
+    Below is an incomplete analogy prompt and a user's spoken response to complete it.
+    
+    Incomplete Analogy: "{incomplete_analogy}"
+    
+    User's Response: "{transcript}"
+    
+    Please evaluate the response based on two criteria:
+    
+    1. Relevance (0-10): How well does the response connect to the analogy prompt? 
+       Does it create a clear and appropriate comparison?
+       
+    2. Creativity (0-10): How original, insightful, or thought-provoking is the analogy?
+       Does it provide a fresh perspective or use unexpected connections?
+    
+    Return your evaluation as a JSON object with two properties:
+    - analogy_relevance: a number between 0 and 10 (with up to 2 decimal places)
+    - creativity: a number between 0 and 10 (with up to 2 decimal places)
+    
+    Response must be in this exact JSON format and nothing else:
+    {{
+        "analogy_relevance": 0.00,
+        "creativity": 0.00
+    }}
+    """
+    completion = client.chat.completions.create(
+        model="llama-3.3-70b-versatile",
+        messages=[
+            {
+                "role": "system",
+                "content": "You are an AI assistant that evaluates analogies based on relevance and creativity. Provide numeric scores only."
+            },
+            {
+                "role": "user",
+                "content": prompt
+            }
+        ],
+        temperature=0.8,  
+        max_completion_tokens=256
+    )
+    
+    response_content = completion.choices[0].message.content
+    response_dict = json.loads(response_content)
 
     return {
-        "response_timing_score": response_timing_score,
-        "speech_continuity_score": speech_continuity_score,
-        "analogy_relevance_score": relevance_score,
-        "creativity_score": creativity_score,
-        "overall_score": overall_score,
+        "analogy_relevance": round(response_dict['analogy_relevance'], 2),
+        "creativity": round(response_dict["creativity"], 2)
     }
+        
+def process_rapidfire_audio(audio_file_path, analogy):
 
-def save_uploaded_file(audio_file_path, destination_path):
-    """
-    Reads the content of a file at 'audio_file_path' and writes it to 'destination_path'.
-    This function assumes that audio_file_path is a string representing a valid file path.
-    """
-    with open(audio_file_path, 'rb') as in_file:
-        data = in_file.read()
-    with open(destination_path, 'wb') as out_file:
-        out_file.write(data)
-
-def convert_wav_to_mp3(wav_file, mp3_file="output.mp3"):
-    """
-    Convert a WAV file to MP3 using pydub.
-    Requires ffmpeg to be installed on the system.
-    """
-    try:
-        audio = AudioSegment.from_wav(wav_file)
-        audio.export(mp3_file, format="mp3")
-        print(f"Converted {wav_file} to {mp3_file}")
-        return mp3_file
-    except Exception as e:
-        print("Error converting WAV to MP3:", e)
-        raise
-
-def transcribe_audio(mp3_file):
-    """
-    Transcribe the provided MP3 file using Whisper.
-    """
-    print("Loading Whisper model...")
-    model = whisper.load_model("base")
-    print("Transcribing audio...")
-    result = model.transcribe(mp3_file)
-    return result["text"]
-
-def process_audio_upload(audio_file_path):
-    """
-    Process the uploaded audio file:
-      1. Convert the uploaded webm file to WAV.
-      2. Convert the WAV file to MP3.
-      3. Transcribe the MP3 file using Whisper.
-      
-    Note: In this example we assume the uploaded file is in webm format.
-    """
-    # Define temporary file paths
-    wav_path = "temp_output.wav"
-    mp3_path = "temp_output.mp3"
-
-    try:
-        # Convert the webm file to WAV.
-        # pydub can usually detect the file type from the file extension.
-        print("Converting webm to wav...")
-        audio_segment = AudioSegment.from_file(audio_file_path, format="webm")
-        audio_segment.export(wav_path, format="wav")
-    except Exception as e:
-        print("Error converting webm to wav:", e)
-        raise
-
-    # Convert WAV to MP3
-    convert_wav_to_mp3(wav_path, mp3_path)
+    result = process_audio_upload(audio_file_path)
+    segments = result.get("segments", [])
+    transcript = result.get("text", "")
     
-    # Transcribe the MP3 file using Whisper
-    transcript = transcribe_audio(mp3_path)
+    # Calculate word-level timestamps
+    word_timestamps = []
+    previous_word_end = None
+    gaps = []  # store gaps between consecutive words
     
-    # Clean up temporary files
-    for file in [wav_path, mp3_path]:
-        if os.path.exists(file):
-            os.remove(file)
+    for segment in segments:
+        seg_start = segment["start"]
+        seg_end = segment["end"]
+        seg_text = segment["text"].strip()
+        words = seg_text.split()
+        num_words = len(words)
+        if num_words == 0:
+            continue
+        duration = seg_end - seg_start
+        word_duration = duration / num_words
+        
+        for i, word in enumerate(words):
+            word_start = seg_start + i * word_duration
+            word_end = word_start + word_duration
+            word_timestamps.append({
+                "word": word,
+                "start": round(word_start, 2),
+                "end": round(word_end, 2)
+            })
+            if previous_word_end is not None:
+                gap = word_start - previous_word_end
+                gaps.append(gap)
+            previous_word_end = word_end
+
+    if transcript.strip() == "":
+        speech_continuity = 0
+    else:
+        if gaps:
+            gaps_array = np.array(gaps)
+            avg_gap = np.mean(gaps_array)
+            std_gap = np.std(gaps_array)
+            
+            # Penalize both large average gaps and inconsistent timing
+            speech_continuity = max(0, 10 - (avg_gap * 5) - (std_gap * 3))
+        else:
+            speech_continuity = 10.0
+
+    # Score analogy relevance and creativity using Groq
+    analogy_scores = score_analogy_with_groq(transcript, analogy)
+    analogy_relevance = analogy_scores["analogy_relevance"]
+    creativity = analogy_scores["creativity"]
     
-    return transcript
+    # Extract text topic using NLP
+    text_topic = extract_topic(transcript)
+    
+    # Calculate overall score
+    overall_rapidfire_score = (speech_continuity + analogy_relevance + creativity) / 3
+    
+    metrics = {
+        "speech_continuity": round(speech_continuity, 2),
+        "analogy_relevance": analogy_relevance,
+        "creativity": creativity,
+        "overall_rapidfire_score": round(overall_rapidfire_score, 2),
+        "text_topic": text_topic
+    }
+    return {
+        "transcript": transcript,
+        "word_timestamps": word_timestamps,
+        "metrics": metrics,
+        "generated_analogy": analogy
+    }

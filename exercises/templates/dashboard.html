@@ -1,142 +1,578 @@
 <!DOCTYPE html>
 <html lang="en">
-
 <head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Dashboard 🗓️</title>
-    <link href="https://stackpath.bootstrapcdn.com/bootstrap/4.5.2/css/bootstrap.min.css" rel="stylesheet">
-    <style>
-        body {
-            background-color: #f4f6f9;
-            font-family: Arial, sans-serif;
-            margin-top: 20px;
-        }
-
-        .dashboard-header {
-            margin-bottom: 30px;
-        }
-
-        .card {
-            border-radius: 10px;
-            box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
-            margin-bottom: 20px;
-        }
-
-        .card-header {
-            background-color: #007bff;
-            color: white;
-            font-size: 1.5rem;
-        }
-
-        .btn {
-            border-radius: 5px;
-            padding: 10px 20px;
-            font-size: 1rem;
-        }
-
-        .btn-primary {
-            background-color: #007bff;
-            border: none;
-        }
-
-        .btn-primary:hover {
-            background-color: #0056b3;
-        }
-
-        .btn-secondary {
-            background-color: #6c757d;
-            border: none;
-        }
-
-        .btn-secondary:hover {
-            background-color: #5a6268;
-        }
-
-        .navbar-nav .nav-link {
-            font-size: 1rem;
-        }
-
-        .user-greeting {
-            font-size: 1.2rem;
-            font-weight: bold;
-            margin-bottom: 20px;
-        }
-    </style>
+  <meta charset="UTF-8">
+  <title>Dashboard 🗓️</title>
+  <link href="https://stackpath.bootstrapcdn.com/bootstrap/4.5.2/css/bootstrap.min.css" rel="stylesheet">
+  <style>
+    body {
+      background-image: url('data:image/svg+xml,%3Csvg width="42" height="44" viewBox="0 0 42 44" xmlns="http://www.w3.org/2000/svg"%3E%3Cg id="Page-1" fill="none" fill-rule="evenodd"%3E%3Cg id="brick-wall" fill="%239C92AC" fill-opacity="0.4"%3E%3Cpath d="M0 0h42v44H0V0zm1 1h40v20H1V1zM0 23h20v20H0V23zm22 0h20v20H22V23z"/%3E%3C/g%3E%3C/g%3E%3C/svg%3E');
+      background-color: #ffffff;
+      font-family: Arial, sans-serif;
+    }
+    .dashboard-header {
+      margin-bottom: 30px;
+      text-align: left;
+    }
+    .card {
+      border-radius: 10px;
+      box-shadow: 10px 10px 10px rgb(0, 0, 0);
+      margin-bottom: 30px;
+      transition: transform 0.2s;
+      cursor: pointer;
+    }
+    .card:hover {
+      transform: scale(1.03);
+    }
+    .card-header {
+      background-color: #007bff;
+      color: white;
+      font-size: 1.5rem;
+    }
+    .chart-container {
+      background-color: #ffffff;
+      padding: 20px;
+      border-radius: 10px;
+      box-shadow: 0 0 10px rgba(0, 0, 0, 0.1);
+      margin-top: 30px;
+    }
+    .leaderboard {
+      background-color: white;
+      padding: 20px;
+      border-radius: 10px;
+      box-shadow: 0 0 10px rgba(0, 0, 0, 0.1);
+    }
+    .leaderboard h3 {
+      text-align: center;
+      margin-bottom: 20px;
+    }
+    .leaderboard-table {
+      width: 100%;
+      text-align: left;
+    }
+    .leaderboard-table th, .leaderboard-table td {
+      padding: 10px;
+      border-bottom: 1px solid #ddd;
+    }
+    .leaderboard-table th {
+      background-color: #007bff;
+      color: white;
+    }
+    .rank {
+      font-weight: bold;
+    }
+  </style>
 </head>
-
 <body>
-    <nav class="navbar navbar-expand-lg navbar-dark bg-dark sticky-top">
-        <div class="container">
-            <button class="navbar-toggler" type="button" data-toggle="collapse" data-target="#navbarNav"
-                aria-controls="navbarNav" aria-expanded="false" aria-label="Toggle navigation">
-                <span class="navbar-toggler-icon"></span>
-            </button>
-            <div class="collapse navbar-collapse" id="navbarNav">
-                <ul class="navbar-nav ml-auto">
-                    {% if user.is_authenticated %}
-                    <li class="nav-item">
-                        <span class="nav-link text-white">Welcome, {{ user.username }}!</span>
-                    </li>
-                    <li class="nav-item">
-                        <form method="POST" action="{% url 'logout' %}">
-                            {% csrf_token %}
-                            <button class="btn btn-secondary" type="submit">Logout</button>
-                        </form>
-                    </li>
-                    {% else %}
-                    <li class="nav-item">
-                        <a class="nav-link" href="{% url 'login' %}">Login</a>
-                    </li>
-                    <li class="nav-item">
-                        <a class="nav-link" href="{% url 'register' %}">Register</a>
-                    </li>
-                    {% endif %}
-                </ul>
-            </div>
-        </div>
-    </nav>
-
+  <nav class="navbar navbar-expand-lg navbar-dark bg-dark sticky-top">
     <div class="container">
-        <div class="card">
-            <div class="card-header">
-                Dashboard 🗓️
-            </div>
-            <div class="card-body">
-                {% if user.is_authenticated %}
-                <div class="user-greeting">
-                <div>
-                    <a href="{% url 'rapidfire' %}" class="btn btn-primary">rapid fire</a>
-                </div>
-                <br>
-                <div>
-                    <a href="{% url 'triplestep' %}" class="btn btn-primary">triple step</a>
-                </div>
-                <br>
-                <div>
-                    <a href="{% url 'conductor' %}" class="btn btn-primary">conductor</a>
-                </div>
-                    Hello, {{ user.username }}! Welcome back to your dashboard.
-                </div>
-                <p>This is your dashboard where you can manage your profile, check your activities, and much more.</p>
-                <div>
-                    <a href="{% url 'edit_profile' %}" class="btn btn-primary">Edit Profile</a>
-                </div>
-                {% else %}
-                <div class="user-greeting">
-                    You are not logged in.
-                </div>
-                <p>Please log in to view your dashboard.</p>
-                <a href="{% url 'login' %}" class="btn btn-primary">Login</a>
-                <a href="{% url 'register' %}" class="btn btn-secondary">Register</a>
-                {% endif %}
-            </div>
-        </div>
+      <a class="navbar-brand" href="{% url 'dashboard' %}">Speech Trainer</a>
+      {% if user.is_authenticated %}
+      <span class="navbar-text ml-3">
+        Level: {{ level }} | Total XP: {{ total_xp }}
+      </span>
+      {% endif %}
+      <button class="navbar-toggler" type="button" data-toggle="collapse" data-target="#navbarNav"
+              aria-controls="navbarNav" aria-expanded="false" aria-label="Toggle navigation">
+          <span class="navbar-toggler-icon"></span>
+      </button>
+      <div class="collapse navbar-collapse" id="navbarNav">
+          <ul class="navbar-nav ml-auto">
+              {% if user.is_authenticated %}
+              <li class="nav-item">
+                  <span class="nav-link text-white">Welcome, {{ user.username }}!</span>
+              </li>
+              <li class="nav-item">
+                  <form method="POST" action="{% url 'logout' %}">
+                      {% csrf_token %}
+                      <button class="btn btn-secondary" type="submit">Logout</button>
+                  </form>
+              </li>
+              {% else %}
+              <li class="nav-item">
+                  <a class="nav-link" href="{% url 'login' %}">Login</a>
+              </li>
+              <li class="nav-item">
+                  <a class="nav-link" href="{% url 'register' %}">Register</a>
+              </li>
+              {% endif %}
+          </ul>
+      </div>
+    </div>
+  </nav>
+
+  <div class="container">
+    <div class="dashboard-header">
+      <h1>Dashboard 🗓️</h1>
     </div>
 
-    <script src="https://code.jquery.com/jquery-3.5.1.slim.min.js"></script>
-    <script src="https://cdn.jsdelivr.net/npm/bootstrap@4.5.2/dist/js/bootstrap.bundle.min.js"></script>
-</body>
+    <!-- Exercise Cards -->
+    <div class="row">
+      <div class="col-md-4">
+        <a href="{% url 'rapidfire' %}" style="text-decoration:none;color:inherit;">
+          <div class="card">
+            <div class="card-header">RapidFire</div>
+            <div class="card-body">
+              <p class="card-description">
+                RapidFire presents a challenge where you are required to speak quickly. It tests your ability to maintain clarity and precision. 
+              </p>
+            </div>
+          </div>
+        </a>
+      </div>
+      <div class="col-md-4">
+        <a href="{% url 'triplestep' %}" style="text-decoration:none;color:inherit;">
+          <div class="card">
+            <div class="card-header">TripleStep</div>
+            <div class="card-body">
+              <p class="card-description">
+                TripleStep measures your ability to maintain coherence and stay on topic despite distractions.
+              </p>
+            </div>
+          </div>
+        </a>
+      </div>
+      <div class="col-md-4">
+        <a href="{% url 'conductor' %}" style="text-decoration:none;color:inherit;">
+          <div class="card">
+            <div class="card-header">Conductor</div>
+            <div class="card-body">
+              <p class="card-description">
+                Conductor evaluates your vocal variety by analyzing energy levels and mood matching.
+              </p>
+            </div>
+          </div>
+        </a>
+      </div>
+    </div>
 
+    <!-- Leaderboard -->
+    <div class="mt-4">
+      <div class="leaderboard">
+        <h1 class="text-center">Leaderboard 🏆</h1>
+        <h3>Top Users</h3>
+        <table class="leaderboard-table">
+          <thead>
+            <tr>
+              <th>Rank</th>
+              <th>Username</th>
+              <th>XP</th>
+            </tr>
+          </thead>
+          <tbody id="leaderboard-body"></tbody>
+        </table>
+      </div>
+    </div>
+
+    <!-- Other Charts -->
+    <div class="chart-container">
+      <h3>Performance Over Time</h3>
+      <svg id="line-chart"></svg>
+    </div>
+
+    <!-- Side by Side: Pie Chart and Bar Chart -->
+    <div class="container-fluid mt-4">
+      <div class="row">
+        <!-- Pie Chart Column -->
+        <div class="col-md-5">
+          <div class="card">
+            <div class="card-header">
+              <h3>XP Distribution by Exercise</h3>
+            </div>
+            <div class="card-body">
+              <svg id="xp-pie-chart"></svg>
+            </div>
+          </div>
+        </div>
+        <!-- Bar Chart Column -->
+        <div class="col-md-7">
+          <div class="card">
+            <div class="card-header">
+              <h3>Average Scores per Exercise</h3>
+            </div>
+            <div class="card-body">
+              <svg id="xp-bar-chart"></svg>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+
+  <!-- Radar Charts: Full-Width Layout -->
+  <div class="container-fluid mt-4">
+    <div class="row">
+      <!-- RapidFire Radar Chart -->
+      <div class="col-md-4">
+        <div class="card">
+          <div class="card-header">
+            <h3>RapidFire Performance </h3>
+          </div>
+          <div class="card-body">
+            <svg id="radar-rapidfire"></svg>
+          </div>
+        </div>
+      </div>
+      <!-- TripleStep Radar Chart -->
+      <div class="col-md-4">
+        <div class="card">
+          <div class="card-header">
+            <h3>TripleStep Performance </h3>
+          </div>
+          <div class="card-body">
+            <svg id="radar-triplestep"></svg>
+          </div>
+        </div>
+      </div>
+      <!-- Conductor Radar Chart -->
+      <div class="col-md-4">
+        <div class="card">
+          <div class="card-header">
+            <h3>Conductor Performance</h3>
+          </div>
+          <div class="card-body">
+            <svg id="radar-conductor"></svg>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <script src="https://d3js.org/d3.v6.min.js"></script>
+  <script>
+    // --- Line Chart ---
+    fetch('/api/line-chart-data/')
+      .then(response => response.json())
+      .then(data => {
+        const width = 900, height = 300;
+        const svg = d3.select("#line-chart").attr("width", width).attr("height", height);
+        
+        const xScale = d3.scaleLinear()
+          .domain([1, d3.max(data.test_numbers)])
+          .range([50, width - 50]);
+        const yScale = d3.scaleLinear()
+          .domain([0, d3.max([...data.rapidfire_scores, ...data.triplestep_scores, ...data.conductor_scores])])
+          .range([height - 50, 50]);
+        
+        const line = d3.line()
+          .x((d, i) => xScale(i + 1))
+          .y(d => yScale(d))
+          .curve(d3.curveMonotoneX);
+        
+        const colors = {
+          rapidfire: "red",
+          triplestep: "blue",
+          conductor: "green"
+        };
+
+        svg.append("path")
+          .datum(data.rapidfire_scores)
+          .attr("fill", "none")
+          .attr("stroke", colors.rapidfire)
+          .attr("stroke-width", 2)
+          .attr("d", line);
+        svg.append("path")
+          .datum(data.triplestep_scores)
+          .attr("fill", "none")
+          .attr("stroke", colors.triplestep)
+          .attr("stroke-width", 2)
+          .attr("d", line);
+        svg.append("path")
+          .datum(data.conductor_scores)
+          .attr("fill", "none")
+          .attr("stroke", colors.conductor)
+          .attr("stroke-width", 2)
+          .attr("d", line);
+        
+        svg.append("g")
+          .attr("transform", `translate(0, ${height - 50})`)
+          .call(d3.axisBottom(xScale).tickFormat(d3.format("d")));
+        svg.append("g")
+          .attr("transform", `translate(50, 0)`)
+          .call(d3.axisLeft(yScale));
+        
+        const legend = svg.append("g").attr("transform", `translate(${width - 150}, 0)`);
+        ["RapidFire", "TripleStep", "Conductor"].forEach((exercise, i) => {
+          legend.append("rect")
+            .attr("x", 0)
+            .attr("y", i * 20)
+            .attr("width", 15)
+            .attr("height", 15)
+            .attr("fill", colors[exercise.toLowerCase()]);
+          legend.append("text")
+            .attr("x", 20)
+            .attr("y", i * 20 + 12)
+            .text(exercise)
+            .style("font-size", "14px");
+        });
+      });
+
+    // --- Leaderboard ---
+    fetch('/api/leaderboard-data/')
+      .then(response => response.json())
+      .then(data => {
+        const tbody = d3.select("#leaderboard-body");
+        tbody.selectAll("tr")
+          .data(data)
+          .enter()
+          .append("tr")
+          .html((d, i) => `
+            <td class="rank">${i + 1}</td>
+            <td>${d.username}</td>
+            <td>${d.xp}</td>
+          `);
+      });
+
+    // --- Pie Chart (XP Distribution) ---
+    fetch('/api/pie-chart-data/')
+      .then(response => response.json())
+      .then(data => {
+        const width = 500, height = 300, radius = 100;
+        const svg = d3.select("#xp-pie-chart").attr("width", width).attr("height", height);
+        const pie = d3.pie().value(d => d.xp)(data);
+        const arc = d3.arc().innerRadius(50).outerRadius(radius);
+        const color = d3.scaleOrdinal(d3.schemeCategory10);
+
+        svg.selectAll("path")
+          .data(pie)
+          .enter().append("path")
+          .attr("d", arc)
+          .attr("transform", `translate(${width / 3.5}, ${height / 2})`)
+          .attr("fill", (d, i) => color(i));
+
+        const totalXP = d3.sum(data, d => d.xp);
+        svg.selectAll("text.slice-label")
+          .data(pie)
+          .enter().append("text")
+          .attr("transform", function(d) {
+              var c = arc.centroid(d);
+              return "translate(" + (c[0] + width / 3.5) + "," + (c[1] + height / 2) + ")";
+          })
+          .attr("dy", "0.35em")
+          .attr("text-anchor", "middle")
+          .text(function(d) {
+              let percentage = (d.data.xp / totalXP * 100).toFixed(1);
+              return percentage + "%";
+          })
+          .style("fill", "#fff");
+
+        const pieLegend = svg.append("g")
+            .attr("transform", `translate(30, 20)`);
+        const pieLegendItems = pieLegend.selectAll(".legend-item")
+            .data(data)
+            .enter().append("g")
+            .attr("transform", (d, i) => `translate(200, ${i * 25})`);
+        pieLegendItems.append("rect")
+            .attr("width", 18)
+            .attr("height", 18)
+            .attr("fill", (d, i) => color(i));
+        pieLegendItems.append("text")
+            .attr("x", 25)
+            .attr("y", 13)
+            .text(d => d.exercise);
+      });
+
+    // --- Bar Chart (Average Scores) ---
+    fetch('/api/bar-chart-data/')
+      .then(response => response.json())
+      .then(data => {
+        const width = 600, height = 300;
+        const svg = d3.select("#xp-bar-chart").attr("width", width).attr("height", height);
+        const xScale = d3.scaleBand()
+          .domain(data.map(d => d.exercise))
+          .range([50, width - 50])
+          .padding(0.3);
+        const yScale = d3.scaleLinear()
+          .domain([0, d3.max(data, d => d.avg_score)])
+          .range([height - 50, 50]);
+        const barColor = d3.scaleOrdinal(d3.schemeCategory10);
+
+        svg.selectAll("rect")
+          .data(data)
+          .enter().append("rect")
+          .attr("x", d => xScale(d.exercise))
+          .attr("y", d => yScale(d.avg_score))
+          .attr("width", xScale.bandwidth())
+          .attr("height", d => height - 50 - yScale(d.avg_score))
+          .attr("fill", (d, i) => barColor(i));
+
+        svg.selectAll(".bar-label")
+          .data(data)
+          .enter().append("text")
+          .attr("class", "bar-label")
+          .attr("x", d => xScale(d.exercise) + xScale.bandwidth() / 2)
+          .attr("y", d => yScale(d.avg_score) - 5)
+          .attr("text-anchor", "middle")
+          .text(d => d.avg_score.toFixed(1));
+
+        const barLegend = svg.append("g")
+            .attr("transform", `translate(300, 20)`);
+        const barLegendItems = barLegend.selectAll(".legend-item")
+            .data(data)
+            .enter().append("g")
+            .attr("transform", (d, i) => `translate(0, ${i * 25})`);
+        barLegendItems.append("rect")
+            .attr("width", 18)
+            .attr("height", 18)
+            .attr("fill", (d, i) => barColor(i));
+        barLegendItems.append("text")
+            .attr("x", 25)
+            .attr("y", 13)
+            .text(d => d.exercise);
+      });
+
+    // --- Radar Chart Drawing Function ---
+    function drawRadarChart(svgId, data, options = {}) {
+      const cfg = {
+        w: options.w || 300,
+        h: options.h || 300,
+        margin: options.margin || { top: 30, right: 30, bottom: 30, left: 30 },
+        levels: options.levels || 5,
+        maxValue: options.maxValue || d3.max(data, d => d.value),
+        labelFactor: options.labelFactor || 1.1,
+        wrapWidth: options.wrapWidth || 60,
+        opacityArea: options.opacityArea || 0.35,
+        dotRadius: options.dotRadius || 4,
+        opacityCircles: options.opacityCircles || 0.1,
+        strokeWidth: options.strokeWidth || 2,
+        color: options.color || d3.scaleOrdinal().range(["#26AF32"])
+      };
+
+      const allAxis = data.map(d => d.axis);
+      const total = allAxis.length;
+      const radius = Math.min(cfg.w / 2, cfg.h / 2);
+      const angleSlice = Math.PI * 2 / total;
+
+      const svgEl = d3.select(svgId)
+        .attr("width", cfg.w + cfg.margin.left + cfg.margin.right)
+        .attr("height", cfg.h + cfg.margin.top + cfg.margin.bottom);
+      svgEl.selectAll("*").remove();
+
+      const g = svgEl.append("g")
+        .attr("transform", `translate(${cfg.w / 2 + cfg.margin.left}, ${cfg.h / 2 + cfg.margin.top})`);
+
+      const axisGrid = g.append("g").attr("class", "axisWrapper");
+      for (let level = 0; level < cfg.levels; level++) {
+        let rLevel = radius * ((level + 1) / cfg.levels);
+        axisGrid.append("circle")
+          .attr("class", "gridCircle")
+          .attr("r", rLevel)
+          .style("fill", "#CDCDCD")
+          .style("stroke", "#CDCDCD")
+          .style("fill-opacity", cfg.opacityCircles);
+      }
+
+      axisGrid.selectAll(".axisLabel")
+        .data(d3.range(1, cfg.levels + 1))
+        .enter().append("text")
+        .attr("class", "axisLabel")
+        .attr("x", 4)
+        .attr("y", d => -d * radius / cfg.levels)
+        .attr("dy", "0.4em")
+        .style("font-size", "10px")
+        .attr("fill", "#737373")
+        .text(d => (cfg.maxValue * d / cfg.levels).toFixed(1));
+
+      const axis = g.selectAll(".axis")
+        .data(allAxis)
+        .enter()
+        .append("g")
+        .attr("class", "axis");
+
+      axis.append("line")
+        .attr("x1", 0)
+        .attr("y1", 0)
+        .attr("x2", (d, i) => radius * Math.cos(angleSlice * i - Math.PI / 2))
+        .attr("y2", (d, i) => radius * Math.sin(angleSlice * i - Math.PI / 2))
+        .style("stroke", "white")
+        .style("stroke-width", "2px");
+
+      axis.append("text")
+        .attr("class", "legend")
+        .style("font-size", "11px")
+        .attr("text-anchor", "middle")
+        .attr("dy", "0.35em")
+        .attr("x", (d, i) => (radius * cfg.labelFactor) * Math.cos(angleSlice * i - Math.PI / 2))
+        .attr("y", (d, i) => (radius * cfg.labelFactor) * Math.sin(angleSlice * i - Math.PI / 2))
+        .text(d => d)
+        .call(wrap, cfg.wrapWidth);
+
+      const radarLine = d3.lineRadial()
+        .radius(d => d.value / cfg.maxValue * radius)
+        .angle((d, i) => i * angleSlice)
+        .curve(d3.curveLinearClosed);
+
+      g.append("path")
+        .datum(data)
+        .attr("d", radarLine)
+        .style("fill", cfg.color(0))
+        .style("fill-opacity", cfg.opacityArea)
+        .style("stroke", cfg.color(0))
+        .style("stroke-width", cfg.strokeWidth + "px");
+
+      g.selectAll(".radarCircle")
+        .data(data)
+        .enter().append("circle")
+        .attr("class", "radarCircle")
+        .attr("r", cfg.dotRadius)
+        .attr("cx", (d, i) => (d.value / cfg.maxValue * radius) * Math.cos(angleSlice * i - Math.PI / 2))
+        .attr("cy", (d, i) => (d.value / cfg.maxValue * radius) * Math.sin(angleSlice * i - Math.PI / 2))
+        .style("fill", cfg.color(0))
+        .style("fill-opacity", 0.8);
+
+      function wrap(text, width) {
+        text.each(function () {
+          var text = d3.select(this),
+              words = text.text().split(/\s+/).reverse(),
+              word,
+              line = [],
+              lineNumber = 0,
+              lineHeight = 1.1,
+              y = text.attr("y"),
+              x = text.attr("x"),
+              dy = parseFloat(text.attr("dy")),
+              tspan = text.text(null).append("tspan").attr("x", x).attr("y", y).attr("dy", dy + "em");
+          while (word = words.pop()) {
+            line.push(word);
+            tspan.text(line.join(" "));
+            if (tspan.node().getComputedTextLength() > width) {
+              line.pop();
+              tspan.text(line.join(" "));
+              line = [word];
+              tspan = text.append("tspan").attr("x", x).attr("y", y).attr("dy", ++lineNumber * lineHeight + dy + "em").text(word);
+            }
+          }
+        });
+      }
+    }
+
+    // --- Fetch Radar Chart Data and Draw Each Chart ---
+    fetch('/api/radar-chart-data/')
+      .then(response => response.json())
+      .then(data => {
+        // Dynamically calculate width for each radar chart column.
+        const radarChartWidth = (document.body.clientWidth / 3) - 40;
+        const radarChartOptions = { w: radarChartWidth, h: 300 };
+        
+        const rapidfireData = [
+          { axis: "Speech Continuity", value: data.rapidfire.speech_continuity || 0 },
+          { axis: "Analogy Relevance", value: data.rapidfire.analogy_relevance || 0 },
+          { axis: "Creativity", value: data.rapidfire.creativity || 0 }
+        ];
+        const triplestepData = [
+          { axis: "Coherence Score", value: data.triplestep.coherence_score || 0 },
+          { axis: "Topic Adherence", value: data.triplestep.topic_adherence_score || 0 },
+          { axis: "Distraction Handling", value: data.triplestep.distraction_handling_score || 0 }
+        ];
+        const conductorData = [
+          { axis: "Energy Level", value: data.conductor.energy_level_score || 0 },
+          { axis: "Mood Match", value: data.conductor.mood_match_score || 0 }
+        ];
+        drawRadarChart("#radar-rapidfire", rapidfireData, radarChartOptions);
+        drawRadarChart("#radar-triplestep", triplestepData, radarChartOptions);
+        drawRadarChart("#radar-conductor", conductorData, radarChartOptions);
+      });
+  </script>
+</body>
 </html>
- 

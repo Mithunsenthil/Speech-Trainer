@@ -11,7 +11,6 @@ Speech-Trainer is a web application designed to help users improve their vocal v
 - Groq
 - NLTK
 - Sentence Transformers
-- Gensim
 - Joblib
 
 ## Minimum Requirements
@@ -22,7 +21,6 @@ Speech-Trainer is a web application designed to help users improve their vocal v
 - Groq
 - NLTK
 - Sentence Transformers
-- Gensim
 - Joblib
 - MySQL
 
